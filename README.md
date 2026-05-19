@@ -1,36 +1,93 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PGDAS Manager
 
-## Getting Started
+> Protótipo de apuração automática do PGDAS-D para empresas optantes pelo Simples Nacional.
 
-First, run the development server:
+---
+
+## Sobre o projeto
+
+O **PGDAS Manager** automatiza a apuração mensal do PGDAS-D. O usuário importa os XMLs de NF-e do período e o sistema classifica por CFOP, abate devoluções e cancelamentos, e entrega os valores prontos para transmissão no portal do Simples Nacional.
+
+**Status atual:** Protótipo com dados mockados — sem banco de dados ou autenticação real.
+
+---
+
+## Funcionalidades
+
+- **Dashboard** — visão geral com stats de apurações e faturamento líquido
+- **Empresas** — cadastro multi-empresa com validação de CNPJ
+- **Apuração (wizard 4 passos)**
+  1. Selecionar empresa + competência
+  2. Upload de XMLs de NF-e (simulado com dados de exemplo)
+  3. Revisar notas importadas — excluir individualmente
+  4. Resumo por categoria fiscal + transmissão assistida
+- **Histórico** — listagem de todas as apurações com detalhe por CFOP
+
+---
+
+## Lógica fiscal implementada
+
+| CFOP | Categoria |
+|---|---|
+| 5101, 5102, 5405, 6101, 6102 | Comércio |
+| 5111, 5114, 5117 | Indústria |
+| 5301–5303, 5933, 6301 | Serviços |
+| 7101, 7102 | Exportação |
+| 1201, 2201, 3201 | Devolução (abate da categoria de origem) |
+
+- Notas canceladas (`cSit = 101`) descartadas do cálculo
+- Devoluções abatidas da receita bruta por categoria
+- Valores internos em centavos, exibidos em R$
+
+---
+
+## Stack
+
+- **Next.js 16** (App Router) + **TypeScript**
+- **Tailwind CSS v4** + **shadcn/ui v4** (`@base-ui/react`)
+- **Inter** (texto) + **JetBrains Mono** (valores fiscais/CNPJ)
+- Estado em memória via React Context (sem banco de dados)
+
+---
+
+## Rodando localmente
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Acesse [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Estrutura
 
-## Learn More
+```
+src/
+├── app/
+│   ├── page.tsx          # Dashboard
+│   ├── empresas/         # Cadastro de empresas
+│   ├── apuracao/         # Wizard de apuração
+│   └── historico/        # Histórico de apurações
+├── lib/
+│   ├── types.ts          # Interfaces TypeScript
+│   ├── mock-data.ts      # Dados de exemplo
+│   ├── cfop-map.ts       # Tabela de CFOPs
+│   ├── fiscal.ts         # Lógica de cálculo
+│   └── store.tsx         # Context/estado global
+└── components/
+    └── layout/sidebar.tsx
+```
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Roadmap
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [ ] Parsing real de XML de NF-e (`fast-xml-parser`)
+- [ ] Banco de dados PostgreSQL + Prisma
+- [ ] Autenticação (Clerk ou NextAuth)
+- [ ] Exportação em PDF e Excel
+- [ ] Alertas de prazo de vencimento do DAS
+- [ ] Dashboard de histórico de faturamento
+- [ ] Integração automatizada com portal do Simples Nacional
